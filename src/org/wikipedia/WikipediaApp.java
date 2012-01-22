@@ -6,5 +6,5 @@ import android.app.Application;
 
 public class WikipediaApp extends Application {
 	public ArrayList<GeoName> geonames;
-
+	public String language = "en";
 }

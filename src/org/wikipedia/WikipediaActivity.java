@@ -2,10 +2,7 @@ package org.wikipedia;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-//import android.util.Log;
-//import android.webkit.WebView;
+import android.util.Log;
 
 import com.phonegap.DroidGap;
 
@@ -28,7 +25,7 @@ public class WikipediaActivity extends DroidGap {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // NearBy shit
+        // NearBy stuff
 		SharedPreferences preferences = getSharedPreferences("nearby", MODE_PRIVATE);
 		SharedPreferences.Editor editor = preferences.edit();
 		editor.remove("doSearchNearBy");
@@ -39,7 +36,27 @@ public class WikipediaActivity extends DroidGap {
         this.appView.setWebViewClient(this.webViewClient);
     }
     
+    
+    
     @Override
+	protected void onResume() {
+		// This is where the activity can pick up the URL from the widget
+		super.onResume();
+		final Bundle extras = getIntent().getExtras();
+		if(extras != null) {
+			final String extraURL = extras.getString(WikiWidgetProvider.URL_TAG);
+			
+			if(extraURL != null) {
+				Log.d(TAG, "url in wikipedia activity is " + extraURL);
+			}
+		}
+		
+		
+	}
+
+
+
+	@Override
     public void onReceivedError(final int errorCode, final String description, final String failingUrl) {
     	// no-op!
     }
