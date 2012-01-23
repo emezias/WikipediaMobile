@@ -6,7 +6,9 @@ import android.os.Bundle;
 public class WikiWidgetConfig extends Activity {
 
 	private static final String TAG = "WikiWidgetConfig";
-	
+	/*
+	 * This activity is not implements, it is intended to set user preferences for the widges
+	 */
 	@Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);

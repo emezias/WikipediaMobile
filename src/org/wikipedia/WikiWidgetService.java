@@ -19,7 +19,6 @@ package org.wikipedia;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -41,12 +40,9 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     private List<WidgetItem> mWidgetItems = new ArrayList<WidgetItem>();
     private Context mContext;
     private static final String TAG = "StackRemoteViewsFactory";
-    private int mAppWidgetId;
 
     public StackRemoteViewsFactory(Context context, Intent intent) {
         mContext = context.getApplicationContext();
-        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID);
         
     }
 
@@ -107,32 +103,33 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     public RemoteViews getViewAt(int position) {
         // position will always range from 0 to getCount() - 1.
 
-        // We construct a remote views item based on our widget item xml file, and set the
-        // text based on the position.
+        // Construct a remote views item based on our widget item xml file 
+        // set the title and summary text based on the position.
     	
     	final int itemId = (position % 2 == 0 ? R.layout.widget_listitem
                 : R.layout.widget_listitem2);
-        RemoteViews rv = new RemoteViews(mContext.getPackageName(), itemId);
+        final RemoteViews rv = new RemoteViews(mContext.getPackageName(), itemId);
         rv.setTextViewText(R.id.widget_item, mWidgetItems.get(position).text);
         rv.setTextViewText(R.id.widget_summary, mWidgetItems.get(position).summary);
-        /*rv.setTextViewText(R.id.widget_url, mWidgetItems.get(position).url);*/
-        // Next, we set a fill-intent which will be used to fill-in the pending intent template
-        // which is set on the collection view in StackWidgetProvider.
-        Bundle extras = new Bundle();
+        /*rv.setTextViewText(R.id.widget_url, mWidgetItems.get(position).url);
+         * TODO Consider an active link in a Text view as part of the layout 
+         * This could replace the pending intent or provide the functionality with 2.x releases
+         * */
+        // Next, we set a fill-intent which to fill-in the pending intent template
+        // set on the collection view in WikiWidgetProvider.
+        final Bundle extras = new Bundle();
         extras.putString(WikiWidgetProvider.URL_TAG, "http://" + mWidgetItems.get(position).url);
-        Log.d(TAG, "set url as extra " + mWidgetItems.get(position).url);
-        Intent fillInIntent = new Intent(); //new Intent();
+        //Log.d(TAG, "set url as extra " + mWidgetItems.get(position).url);
+        final Intent fillInIntent = new Intent(); 
         fillInIntent.putExtras(extras);
         //fillInIntent.putExtra(WikiWidgetProvider.URL_TAG, mWidgetItems.get(position).url);
-        //Intent fillInIntent = new Intent();
+        //Setting the extra on the intent rather than in a bundle did not seem to work
         rv.setOnClickFillInIntent(R.id.widget_item, fillInIntent);
 
         // You can do heaving lifting in here, synchronously. For example, if you need to
         // process an image, fetch something from the network, etc., it is ok to do it here,
         // synchronously. A loading view will show up in lieu of the actual contents in the
         // interim.
-
-        // Return the remote views object.
         return rv;
     }
 
@@ -155,11 +152,6 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     }
 
     public void onDataSetChanged() {
-        // This is triggered when you call AppWidgetManager notifyAppWidgetViewDataChanged
-        // on the collection view corresponding to this factory. You can do heaving lifting in
-        // here, synchronously. For example, if you need to process an image, fetch something
-        // from the network, etc., it is ok to do it here, synchronously. The widget will remain
-        // in its current state while work is being done here, so you don't need to worry about
-        // locking up the widget.
+        // For use with a content provider.
     }
 }

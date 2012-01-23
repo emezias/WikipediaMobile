@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2011 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.wikipedia;
 
 import java.io.BufferedReader;
@@ -32,7 +16,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -41,7 +24,12 @@ import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 public class WikiPicWidgetService extends RemoteViewsService {
-    @Override
+	/*
+	 * This class helps the WidgetProvider class populate the views of the collection
+	 * The Provider creates the stack, this service creates the views in that stack 
+	 */
+	
+	@Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
         return new PicRemoteViewsFactory(this.getApplicationContext(), intent);
     }
@@ -49,16 +37,17 @@ public class WikiPicWidgetService extends RemoteViewsService {
 }
 
 class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+    private static final String TAG = "PicRemoteViewsFactory";
+    
+    /* mWidgetItems will cache the data that will be used to fill the items in the list
+    	it is a collection of WidgetItem classes
+    	refer to widget_item.xml and the WidgetItem class
+    */
     private List<WidgetItem> mWidgetItems = new ArrayList<WidgetItem>();
     private Context mContext;
-    private static final String TAG = "PicRemoteViewsFactory";
-    private int mAppWidgetId;
 
     public PicRemoteViewsFactory(Context context, Intent intent) {
-        mContext = context.getApplicationContext();
-        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID);
-        
+        mContext = context.getApplicationContext();        
     }
 
     public void onCreate() {
@@ -68,7 +57,7 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     	
     	//TODO, tighten this up and use a single data structure for the app and the widget
     	final ArrayList<PictureEntry> tmpList = getPicWikiPages();
-    	Log.d(TAG, "tmplist size " + tmpList.size());
+
     	for(PictureEntry pic: tmpList) {
 			mWidgetItems.add(new WidgetItem(pic.getTitle(), pic.getSummary(), pic.getWikipediaUrl()));
     		//mWidgetItems.add(new WidgetItem(gn.getTitle()));
@@ -77,6 +66,8 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
         
     }
     
+    //Pattern matching method to identify the page url for the page displayed in the widget's list view
+    // Kenneth Ng is working on this piece
     public static String getSiteURL(String subjectString){
     	//Pattern matching parse 
     	  Pattern regex = Pattern.compile("(<link>(.*?)</link>)", Pattern.DOTALL);
@@ -91,13 +82,14 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     	  return "";
     	}
 
-
     }
 
-
-    
+    /*
+     * method to create json object from the atom/xml feed
+     * this is filling the cached list data needed to instantiate the collection of views
+     */
     ArrayList<PictureEntry> getPicWikiPages( ) {
-    	Log.d(TAG, "getPicWikiPages");
+    	
 		HttpURLConnection urlConnection = null;
 		ArrayList<PictureEntry> picList = new ArrayList<PictureEntry>();
 		try {
@@ -168,7 +160,12 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     }
     
     String imageFetch(InputStream input) {
-    	Log.d(TAG, "piclist image fetch");
+    	/*
+    	 * This method is a work in progress
+    	 * Kenneth is working to parse the RSS feed more efficiently
+    	 * input is the result of a URLConnection
+    	 */
+    	//Log.d(TAG, "piclist image fetch");
     	ArrayList<String> imgs = new ArrayList<String>();
     	BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		StringBuilder sb = new StringBuilder(500);
@@ -190,64 +187,66 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 			}
 		}
 		sb.trimToSize();
-		Log.d(TAG, "stringbuilder length is " + sb.length());
 		sb.substring(sb.indexOf("<item>"));
 		Log.d(TAG, sb.toString());
 		String pointer;
 		int tmpIndex;
 		Log.d(TAG,"while loop");
 		while(sb.toString().contains("<description>")) {
-			
 			tmpIndex = sb.indexOf("<description>");
 			sb.substring(tmpIndex);
 			pointer = sb.substring(sb.indexOf("src=")+5, sb.indexOf("width")-2);
 			//pull out the jpg web location
 			Log.d(TAG, "next image = " + pointer);
 			imgs.add(pointer);
-		}
-		
-		
+		}		
 		return sb.toString();
-
     }
     
+    //This structure is a temporary measure used to demonstrate the proposed functionality
     private static int[] images = {
     	R.drawable.photo1bird, R.drawable.photo1bird, R.drawable.photo2chichen_itza, R.drawable.photo3periclimenes, R.drawable.photo4da_vinci,
     	R.drawable.photo5psalm_23, R.drawable.photo6molybdenum, R.drawable.photo7edwardteller1958, R.drawable.photo8eumecesfasciatus,
     	R.drawable.photo9caterpillar
     };
 
+    private static int[] widgetID = {
+    	R.layout.pic_widget_item, R.layout.pic_widget_item2
+    };
+    
     public RemoteViews getViewAt(int position) {
-        // position will always range from 0 to getCount() - 1.
+        // position goes from 0 to getCount() - 1.
 
-        // We construct a remote views item based on our widget item xml file, and set the
-        // text based on the position.
-        RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.pic_widget_item);
+        /* Create a remote views object from the pic widget item xml file
+         	alternate the background colors of the widget
+    		set the text of the title and summary based on the position in the list */
+        final RemoteViews rv = new RemoteViews(mContext.getPackageName(), widgetID[position%2]);
         rv.setTextViewText(R.id.widget_item, mWidgetItems.get(position).text);
         rv.setTextViewText(R.id.widget_summary, mWidgetItems.get(position).summary);
+        //now pull the bitmap down from the web and resize it for display
+        //Temporary code TODO
+        /*************/
         if(position < 10) {
         	rv.setImageViewResource(R.id.widget_pic, images[position]);
         } else {
         	rv.setImageViewResource(R.id.widget_pic, R.drawable.icon);
         }
-        /*rv.setTextViewText(R.id.widget_url, mWidgetItems.get(position).url);*/
+        /*************/
         // Next, we set a fill-intent which will be used to fill-in the pending intent template
         // which is set on the collection view in StackWidgetProvider.
         Bundle extras = new Bundle();
         extras.putString(WikiWidgetProvider.URL_TAG, mWidgetItems.get(position).url);
         
-        Log.d(TAG, "set url as extra " + mWidgetItems.get(position).url);
+        //Log.d(TAG, "set url as extra " + mWidgetItems.get(position).url);
         Intent fillInIntent = new Intent(); //new Intent();
-        //fillInIntent.setData(Uri.parse(mWidgetItems.get(position).url));  
         fillInIntent.putExtras(extras);
         rv.setOnClickFillInIntent(R.id.widget_item, fillInIntent);
 
-        // You can do heaving lifting in here, synchronously. For example, if you need to
-        // process an image, fetch something from the network, etc., it is ok to do it here,
-        // synchronously. A loading view will show up in lieu of the actual contents in the
-        // interim.
+        // The extra information specific to this list item must be set with a bundle!!
+        // The substitution did not seem to work when the extra was set directly on the intent
+        //fillInIntent.putExtra(WikiWidgetProvider.URL_TAG, mWidgetItems.get(position).url);;
 
-        // Return the remote views object.
+        // Return the remote views object for display inside the widget
         return rv;
     }
 

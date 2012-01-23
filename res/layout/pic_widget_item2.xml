@@ -3,7 +3,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="350dp"
-    android:background="@drawable/widget_item_background" 
+    android:background="@drawable/pic_item_background2" 
     >
     <ImageView android:id="@+id/widget_pic"
         android:maxWidth="200dp"
