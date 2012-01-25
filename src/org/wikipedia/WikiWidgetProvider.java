@@ -41,7 +41,7 @@ public class WikiWidgetProvider extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         //Broadcast receiver, code will execute when a title of the item in the collection is touched
     	final String action = intent.getAction();
-    	Log.d(TAG, "wiki provider receive " + action);
+    	//Log.d(TAG, "wiki provider receive " + action);
         if (action.equals(CLICK)) {
             String location = intent.getStringExtra(URL_TAG);
             if(location == null) {

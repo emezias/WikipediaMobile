@@ -20,6 +20,7 @@ public class RestJsonClient {
 	public static ArrayList<GeoName> getWikipediaNearbyLocations(
 			double latitude, double longitude, String lang) {
 		HttpURLConnection urlConnection = null;
+		WikipediaApp.language = lang;
 		ArrayList<GeoName> geoList = new ArrayList<GeoName>();
 		try {
 			String requestUrl = "http://ws.geonames.net/findNearbyWikipediaJSON?formatted=true&";
