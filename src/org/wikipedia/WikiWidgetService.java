@@ -16,32 +16,31 @@
 
 package org.wikipedia;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 public class WikiWidgetService extends RemoteViewsService {
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new StackRemoteViewsFactory(this.getApplicationContext(), intent);
+        return new WikiRemoteViewsFactory(this.getApplicationContext(), intent);
     }
 
 }
 
-class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
-    private List<WidgetItem> mWidgetItems = new ArrayList<WidgetItem>();
+class WikiRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+    private static List<WidgetItem> mWidgetItems = new CopyOnWriteArrayList<WidgetItem>();
     private Context mContext;
-    private static final String TAG = "StackRemoteViewsFactory";
+    private static final String TAG = "WikiRemoteViewsFactory";
 
-    public StackRemoteViewsFactory(Context context, Intent intent) {
+    public WikiRemoteViewsFactory(Context context, Intent intent) {
         mContext = context.getApplicationContext();
         
     }
@@ -61,15 +60,27 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 			mWidgetItems.add(new WidgetItem(gn.getTitle(), gn.getSummary(), gn.getWikipediaUrl()));
     		//mWidgetItems.add(new WidgetItem(gn.getTitle()));
 		}
-    	Log.d(TAG, "Wiki Svc Factory onCreate");
-        
+    	//Log.d(TAG, "Wiki Svc Factory onCreate");        
     }
     
-    
+    public static void updateWidgetItems(Context ctx) {
+    	if(((WikipediaApp)ctx.getApplicationContext()).geonames == null) {
+    		final double[] gps = getGPS(ctx);
+        	//need to populate the data structure that will be used by the widget
+    		((WikipediaApp)ctx).geonames = RestJsonClient.getWikipediaNearbyLocations(gps[0], 
+    				gps[1], ((WikipediaApp)ctx).language);
+    	}
+    	//TODO, tighten this up and use a single data structure for the app and the widget
+    	for(GeoName gn: ((WikipediaApp)ctx).geonames) {
+			mWidgetItems.add(new WidgetItem(gn.getTitle(), gn.getSummary(), gn.getWikipediaUrl()));
+    		//mWidgetItems.add(new WidgetItem(gn.getTitle()));
+		}
+
+    }
     //this function is straight from the NearMe Activity, could make it public and static to share across the two classes
-    private double[] getGPS(Context ctx) {
-		LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
-		List<String> providers = lm.getProviders(true);
+    private static double[] getGPS(Context ctx) {
+		final LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+		final List<String> providers = lm.getProviders(true);
 		/*
 		 * Loop over the array backwards, and if you get an accurate location,
 		 * then break out the loop
@@ -81,7 +92,7 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 			if (l != null)
 				break;
 		}
-
+		providers.clear();
 		double[] gps = new double[2];
 		if (l != null) {
 			gps[0] = l.getLatitude();

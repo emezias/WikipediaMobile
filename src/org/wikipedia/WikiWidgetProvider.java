@@ -75,6 +75,7 @@ public class WikiWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // update each of the widgets with the remote adapter
+    	WikiRemoteViewsFactory.updateWidgetItems(context);
         for (int i = 0; i < appWidgetIds.length; ++i) {
         	Log.d(TAG, "wiki provider update, scheduled every 14,400 seconds");
             // Here we setup the intent which points to the WikiWidgetService which will
@@ -113,4 +114,6 @@ public class WikiWidgetProvider extends AppWidgetProvider {
         }
         super.onUpdate(context, appWidgetManager, appWidgetIds);
     }
+    
+    
 }

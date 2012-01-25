@@ -1,11 +1,9 @@
 package org.wikipedia;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import android.app.ProgressDialog;
-import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
