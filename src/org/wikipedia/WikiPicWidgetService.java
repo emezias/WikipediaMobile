@@ -47,7 +47,7 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     	it is a collection of WidgetItem classes
     	refer to widget_item.xml and the WidgetItem class
     */
-    private List<WidgetItem> mWidgetItems = new CopyOnWriteArrayList<WidgetItem>();
+    private static List<WidgetItem> mWidgetItems = new CopyOnWriteArrayList<WidgetItem>();
     private Context mContext;
 
     public PicRemoteViewsFactory(Context context, Intent intent) {
@@ -68,6 +68,15 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 		}
     	//Log.d(TAG, "Wiki Svc Factory onCreate");
         
+    }
+    
+    public static void updateWidgetItems( ) {
+    	final ArrayList<PictureEntry> tmpList = getPicWikiPages();
+
+    	for(PictureEntry pic: tmpList) {
+			mWidgetItems.add(new WidgetItem(pic.getTitle(), pic.getSummary(), pic.getWikipediaUrl()));
+    		//mWidgetItems.add(new WidgetItem(gn.getTitle()));
+		}
     }
     
     //Pattern matching method to identify the page url for the page displayed in the widget's list view
@@ -91,7 +100,7 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
      * method to create json object from the atom/xml feed
      * this is filling the cached list data needed to instantiate the collection of views
      */
-    ArrayList<PictureEntry> getPicWikiPages( ) {
+    private static ArrayList<PictureEntry> getPicWikiPages( ) {
     	
 		HttpURLConnection urlConnection = null;
 		ArrayList<PictureEntry> picList = new ArrayList<PictureEntry>();
@@ -101,14 +110,14 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 			URL url = new URL(requestUrl);
 			urlConnection = (HttpURLConnection) url.openConnection();
 			String jsonStr = RestJsonClient.convertStreamToString(urlConnection.getInputStream());
-			Log.d("RestJsonClient", jsonStr);
+			//Log.d("RestJsonClient", jsonStr);
 
 			// getting data and if we don't we just get out of here!
 			JSONArray picoftheday = null;
 			try {
 				JSONObject json = new JSONObject(jsonStr);
 				picoftheday = json.getJSONArray("items");
-				Log.d(TAG, "json array size is " + picoftheday.length());
+				//Log.d(TAG, "json array size is " + picoftheday.length());
 			} catch (JSONException e) {
 				Log.e(TAG, e.getMessage());
 				e.printStackTrace();
@@ -122,7 +131,7 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 							picObject.getString("link"), 
 							picObject.getString("title"), 
 							picObject.getString("description")));
-					Log.d(TAG, "index in json array is " + i);
+					//Log.d(TAG, "index in json array is " + i);
 				} catch(JSONException e) {
 					// ignore exception and keep going!
 					e.printStackTrace();
@@ -138,7 +147,6 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 		}
 		Log.d(TAG, "picList size is " + picList.size());
 		String request = "http://toolserver.org/~skagedal/feeds/potd.xml";
-		Log.d(TAG, request);
 		URL url;
 		try {
 			url = new URL(request);
@@ -162,7 +170,7 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
         return mWidgetItems.size();
     }
     
-    String imageFetch(InputStream input) {
+    static String imageFetch(InputStream input) {
     	/*
     	 * This method is a work in progress
     	 * Kenneth is working to parse the RSS feed more efficiently

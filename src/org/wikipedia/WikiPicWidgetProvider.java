@@ -43,11 +43,9 @@ public class WikiPicWidgetProvider extends AppWidgetProvider {
         //This code will execute when an item in the widget is touched
     	//Log.d(TAG, "wiki provider receive " + action);
         if (((String)intent.getAction()).equals(CLICK)) {
-        	final Intent tnt = new Intent(context.getApplicationContext(), WikiWidgetActivity.class);
+        	//final Intent tnt = new Intent(context.getApplicationContext(), WikiWidgetActivity.class);
         	//final Intent tnt = new Intent(context.getApplicationContext(), WikipediaActivity.class);
-        	//tnt.setData(Uri.parse(location));
-        	//the phone gap activity hangs up when it is called with an explicit intent and data set
-            tnt.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+        	//the phone gap activity hangs up when it is called with an explicit intent and URL data set
 
             String location = intent.getStringExtra(URL_TAG);
             //Log.d(TAG, "location " + location);
@@ -59,17 +57,19 @@ public class WikiPicWidgetProvider extends AppWidgetProvider {
             		location = "http://" + location;
             	}
             	location = makeMobile(location);
-            	
             }
+            final Intent tnt = new Intent("android.intent.action.VIEW", Uri.parse(location));
             Toast.makeText(context, "Loading Wikipedia: " + location, Toast.LENGTH_SHORT).show();
             //Log.d(TAG, "read url tag, value is " + location);
             tnt.putExtra(URL_TAG, location);
-            
+            tnt.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+
             context.startActivity(tnt);
         	
         }
         super.onReceive(context, intent);
     }
+    
     //TODO remove this with a nice clean parse of Wikipedia data
     public static String makeMobile(String location) {
     	//helper method to insert m in the parsed url and get data faster from the mobile interface
@@ -82,6 +82,7 @@ public class WikiPicWidgetProvider extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // update each of the widgets with the remote adapter
     	// the update interval is once per day
+    	PicRemoteViewsFactory.updateWidgetItems();
         for (int i = 0; i < appWidgetIds.length; ++i) {
         	//Log.d(TAG, "wiki provider update");
             // This intent points to the Service class that creates view objects for this widget
