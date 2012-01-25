@@ -43,11 +43,6 @@ public class WikiWidgetProvider extends AppWidgetProvider {
     	final String action = intent.getAction();
     	Log.d(TAG, "wiki provider receive " + action);
         if (action.equals(CLICK)) {
-        	final Intent tnt = new Intent(context.getApplicationContext(), WikiWidgetActivity.class);
-        	//final Intent tnt = new Intent(context.getApplicationContext(), WikipediaActivity.class);
-        	//tnt.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            tnt.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-
             String location = intent.getStringExtra(URL_TAG);
             if(location == null) {
             	location = "";
@@ -57,6 +52,11 @@ public class WikiWidgetProvider extends AppWidgetProvider {
             //Display a toast for the user to read while the page loads
             Toast.makeText(context, "Loading Wikipedia", Toast.LENGTH_SHORT).show();
             //Debugging toast Toast.makeText(context, "Loading Wikipedia" + location, Toast.LENGTH_SHORT).show();
+            final Intent tnt = new Intent("android.intent.action.VIEW", Uri.parse(location));
+            //tnt.putExtra(URL_TAG, location);
+        	//final Intent tnt = new Intent(context.getApplicationContext(), WikipediaActivity.class);
+        	//tnt.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            tnt.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
 
             tnt.putExtra(URL_TAG, location);
             context.startActivity(tnt);

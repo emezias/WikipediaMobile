@@ -16,6 +16,7 @@
 
 package org.wikipedia;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -64,18 +65,16 @@ class WikiRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     }
     
     public static void updateWidgetItems(Context ctx) {
-    	if(((WikipediaApp)ctx.getApplicationContext()).geonames == null) {
-    		final double[] gps = getGPS(ctx);
+    	final double[] gps = getGPS(ctx);
         	//need to populate the data structure that will be used by the widget
-    		((WikipediaApp)ctx).geonames = RestJsonClient.getWikipediaNearbyLocations(gps[0], 
-    				gps[1], ((WikipediaApp)ctx).language);
-    	}
+    	final ArrayList<GeoName> gnames = RestJsonClient.getWikipediaNearbyLocations(gps[0], 
+    				gps[1], WikipediaApp.language);
     	//TODO, tighten this up and use a single data structure for the app and the widget
-    	for(GeoName gn: ((WikipediaApp)ctx).geonames) {
+    	for(GeoName gn: gnames) {
 			mWidgetItems.add(new WidgetItem(gn.getTitle(), gn.getSummary(), gn.getWikipediaUrl()));
     		//mWidgetItems.add(new WidgetItem(gn.getTitle()));
 		}
-
+    	gnames.clear();
     }
     //this function is straight from the NearMe Activity, could make it public and static to share across the two classes
     private static double[] getGPS(Context ctx) {
