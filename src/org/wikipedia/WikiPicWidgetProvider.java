@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -48,16 +49,16 @@ public class WikiPicWidgetProvider extends AppWidgetProvider {
         	//the phone gap activity hangs up when it is called with an explicit intent and URL data set
 
             String location = intent.getStringExtra(URL_TAG);
-            //Log.d(TAG, "location " + location);
+            Log.d(TAG, "location " + location);
             //TODO remove the extra junk with a nice clean parse of Wikipedia data
-            if(location == null) {
+            /*if(location == null) {
             	location = "";
             } else {
             	if(!location.contains("http")) {
             		location = "http://" + location;
             	}
             	location = makeMobile(location);
-            }
+            }*/
             final Intent tnt = new Intent("android.intent.action.VIEW", Uri.parse(location));
             Toast.makeText(context, "Loading Wikipedia: " + location, Toast.LENGTH_SHORT).show();
             //Log.d(TAG, "read url tag, value is " + location);
