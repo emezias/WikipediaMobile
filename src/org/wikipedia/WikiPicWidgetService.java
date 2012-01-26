@@ -1,8 +1,6 @@
 package org.wikipedia;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,8 +19,9 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
@@ -42,7 +41,8 @@ public class WikiPicWidgetService extends RemoteViewsService {
 
 class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     private static final String TAG = "PicRemoteViewsFactory";
-    
+    private static final String POTD_STREAM = "http://toolserver.org/~skagedal/feeds/potd.xml";
+    private static final int MAX_SIZE = 5120;
     /* mWidgetItems will cache the data that will be used to fill the items in the list
     	it is a collection of WidgetItem classes
     	refer to widget_item.xml and the WidgetItem class
@@ -80,19 +80,19 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     }
     
     //Pattern matching method to identify the page url for the page displayed in the widget's list view
-    public static String getSiteURL(String subjectString){
+    public static ArrayList<String> getSiteURLs(String subjectString){
     	//Pattern matching parse 
     	  Pattern regex = Pattern.compile("(<link>(.*?)</link>)", Pattern.DOTALL);
     	  Matcher matcher = regex.matcher(subjectString);
-
-    	  if (matcher.find()) {
+    	  ArrayList<String> wikiPages = new ArrayList<String>();
+  	    	//run through the string and pull out the page urls
+    	  while (matcher.find()) {
     	    String mainURL = matcher.group(2).replace("en.", "en.m.");
     	    Log.d(TAG, mainURL);
-    	    return mainURL;
-
-    	} else {
-    	  return "";
-    	}
+    	    wikiPages.add(mainURL);
+    	  }
+    	
+    	  return wikiPages;
 
     }
 
@@ -261,67 +261,63 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
         return rv;
     }
     
-public static void download( ) {
-    //thanks to Android snippets
-    try {
-    	//set the download URL, a url that points to a file on the internet
-    	//this is the file to be downloaded
-    	URL url = new URL("http://somewhere.com/some/webhosted/file");
+	public static Bitmap download(String jpgUrl) {
+		byte[] buffer = null;
+		int downloadedSize = 0;
+		Bitmap photo2Display = null;
+	    //thanks to Android snippets
+	    try {
+	    	//set the download URL, a url that points to a file on the internet
+	    	//this is the file to be downloaded
+	    	URL url = new URL(jpgUrl);
+	
+	    	//create the new connection
+	    	HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+	
+	    	//set up some things on the connection
+	    	urlConnection.setRequestMethod("GET");
+	    	urlConnection.setDoOutput(true);
+	
+	    	//and connect!
+	    	urlConnection.connect();
+	
+	    	//this will be used in reading the data from the internet
+	    	InputStream inputStream = urlConnection.getInputStream();
+	    	//create a buffer...
+	    	buffer = new byte[1024];
+	    	int bufferLength = 0; //used to store a temporary size of the buffer
+	
+	    	//now, read through the input buffer and write the contents to the file
+	    	while ( (bufferLength = inputStream.read(buffer)) > 0 ) {
+	    		//add up the size so we know how much is downloaded
+	    		downloadedSize += bufferLength;
+	    	}
+	    	if(buffer != null) {
+	    		if(downloadedSize < MAX_SIZE) {
+	    			photo2Display = BitmapFactory.decodeStream(inputStream);
+	    		} else {
+			    	//options.inJustDecodeBounds = true;
+	    		    BitmapFactory.Options options = new BitmapFactory.Options();
+	    		    // scale to nearest power of 2 - faster
+	    		    options.inSampleSize = (int)Math.pow(2, (int)
+	    		    		(Math.log10(Math.sqrt((double)downloadedSize / MAX_SIZE)) / Math.log10(2) + 1)); 
+	    		    // 2 ^ (log2(lengthRatio)+1)
+	    		    options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+	    		    photo2Display = BitmapFactory.decodeStream(inputStream, null, options);
 
-    	//create the new connection
-    	HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-
-    	//set up some things on the connection
-    	urlConnection.setRequestMethod("GET");
-    	urlConnection.setDoOutput(true);
-
-    	//and connect!
-    	urlConnection.connect();
-
-    	//set the path where we want to save the file
-    	//in this case, going to save it on the root directory of the
-    	//sd card.
-    	File SDCardRoot = Environment.getExternalStorageDirectory();
-    	//create a new file, specifying the path, and the filename
-    	//which we want to save the file as.
-    	File file = new File(SDCardRoot,"somefile.ext");
-
-    	//this will be used to write the downloaded data into the file we created
-    	FileOutputStream fileOutput = new FileOutputStream(file);
-
-    	//this will be used in reading the data from the internet
-    	InputStream inputStream = urlConnection.getInputStream();
-
-    	//this is the total size of the file
-    	int totalSize = urlConnection.getContentLength();
-    	//variable to store total downloaded bytes
-    	int downloadedSize = 0;
-
-    	//create a buffer...
-    	byte[] buffer = new byte[1024];
-    	int bufferLength = 0; //used to store a temporary size of the buffer
-
-    	//now, read through the input buffer and write the contents to the file
-    	while ( (bufferLength = inputStream.read(buffer)) > 0 ) {
-    		//add the data in the buffer to the file in the file output stream (the file on the sd card
-    		fileOutput.write(buffer, 0, bufferLength);
-    		//add up the size so we know how much is downloaded
-    		downloadedSize += bufferLength;
-    		//this is where you would do something to report the prgress, like this maybe
-    		//updateProgress(downloadedSize, totalSize);
-
-    	}
-    	//close the output stream when done
-    	fileOutput.close();
-
-    //catch some possible errors...
-    } catch (MalformedURLException e) {
-    	e.printStackTrace();
-    } catch (IOException e) {
-    	e.printStackTrace();
-    }
-    // see http://androidsnippets.com/download-an-http-file-to-sdcard-with-progress-notification
-}
+	    			}
+		    	} //end buffer processing, bitmap is ready
+	
+	    //catch some possible errors...
+	    } catch (MalformedURLException e) {
+	    	e.printStackTrace();
+	    } catch (IOException e) {
+	    	e.printStackTrace();
+	    }
+	    
+	    return photo2Display;
+	    // see http://androidsnippets.com/download-an-http-file-to-sdcard-with-progress-notification
+	}
 
     public RemoteViews getLoadingView() {
         // You can create a custom loading view (for instance when getViewAt() is slow.) If you
