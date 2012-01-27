@@ -40,7 +40,9 @@ public class PictureEntry {
 			sb.delete(0, index);
 		}
 		sb.insert(sb.indexOf("."), ".m");
-		Log.d(TAG, "wikipedia url is " + sb.toString());
+		if(sb.indexOf("featured_article") > 0) {
+			Log.d(TAG, "article url is " + sb.toString());
+		}
 		this.wikipediaUrl = sb.toString();
 		sb.setLength(0);
 	}
@@ -77,8 +79,20 @@ public class PictureEntry {
 	}
 	
 	public void setPhoto(String sumString) {
-		Log.d(TAG, "setPhoto");
+		//Log.d(TAG, "setPhoto");
 		this.photo = WikiFeedParser.downloadPics(getPhotoURL(sumString));
+		sb.setLength(0);
+	}
+	
+	private String trimLinkString(String someUrl) {
+		sb.append(someUrl);
+		index = sb.indexOf("http");
+		if(index != 0) {
+			sb.delete(0, index);
+		}
+		sb.insert(sb.indexOf("."), ".m");
+		Log.d(TAG, "wikipedia url is " + sb.toString());
+		return sb.toString();
 	}
 	
 	public String getPhotoURL(String subjectString){
@@ -89,9 +103,15 @@ public class PictureEntry {
 		int indya=0, indyb=0;
 		indya = sb.indexOf("src=") + 5;
 		indyb = sb.indexOf("width=", indya) -2;
-		//Log.d(TAG, "indices are " + indya + " : " + indyb);
-		sb = new StringBuilder(sb.substring(indya, indyb));
-		sb.insert(0, "http:");
+		Log.d(TAG, "indices are " + indya + " : " + indyb);
+		if(indya > 4 && indyb < subjectString.length() && indyb > 0) {
+			sb = new StringBuilder(sb.substring(indya, indyb));
+			sb.insert(0, "http:");
+		}
+		if(indya == 4) {
+			Log.d(TAG, "no src in description");
+			return null;
+		}
 		/*sb.delete(5, 23);
 		sb.insert(9, ".m");*/
 		//src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/Chichen_Itza_3.jpg/300px-Chichen_Itza_3.jpg" width="300"
@@ -111,6 +131,7 @@ public class PictureEntry {
 			Log.e(TAG, "photo url is empty");
 			return "";
 		}*/
+		Log.d(TAG, "photo url is " + sb.toString());
 		return sb.toString();
 	}
 

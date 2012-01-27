@@ -13,7 +13,8 @@
 	<uses-sdk android:minSdkVersion="8" />
 	<application android:name=".WikipediaApp" android:icon="@drawable/icon" android:label="@string/app_name">
 		<uses-library android:name="com.google.android.maps" android:required="false" />
-		<activity android:name=".WikipediaActivity" android:label="@string/app_name"
+		<activity android:name=".WikiWidgetActivity" android:label="@string/app_name"
+		    android:theme="@android:style/Theme.NoTitleBar"
 			android:configChanges="orientation|keyboardHidden">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -27,11 +28,7 @@
 				<data android:host="*.wikipedia.org" android:scheme="https" />
 			</intent-filter>
 		</activity>
-		<activity android:name="com.phonegap.DroidGap" android:label="@string/app_name"
-			android:configChanges="orientation|keyboardHidden">
-			<intent-filter>
-			</intent-filter>
-		</activity>
+
 		<activity android:name=".NearMeActivity" android:label="@string/app_name"
 			android:configChanges="orientation"
 			android:theme="@android:style/Theme.NoTitleBar">
@@ -42,16 +39,20 @@
 				android:resource="@xml/searchable" />
 		</activity>
 		
-		<activity android:name=".WikiWidgetActivity" android:label="@string/app_name"
-			android:configChanges="orientation"
-			android:theme="@android:style/Theme.NoTitleBar">
-		</activity>
 		<receiver android:name=".WikiWidgetProvider" android:enabled="true">
 	    	<intent-filter>
 	        	<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 	    	</intent-filter>
 	   	 	<meta-data android:name="android.appwidget.provider" android:label="Nearby List"
 	               android:resource="@xml/wiki_widget_info"  />
+		</receiver>
+		
+		<receiver android:name=".WikiFeatureWidgetProvider" android:enabled="true">
+	    	<intent-filter>
+	        	<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+	    	</intent-filter>
+	   	 	<meta-data android:name="android.appwidget.provider" android:label="Featured Articles"
+	               android:resource="@xml/wiki_feature_widget_info"  />
 		</receiver>
 		
 		<service android:name=".WikiWidgetService"
@@ -70,5 +71,8 @@
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
 		
+		<service android:name=".WikiFeatureWidgetSvc"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />		
 	</application>
 </manifest>

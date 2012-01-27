@@ -6,10 +6,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
-public class WikiPicWidgetService extends RemoteViewsService {
+public class WikiFeatureWidgetSvc extends RemoteViewsService {
 	/*
 	 * This class helps the WidgetProvider class populate the views of the collection
 	 * The Provider creates the stack, this service creates the views in that stack 
@@ -17,22 +18,22 @@ public class WikiPicWidgetService extends RemoteViewsService {
 	
 	@Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new PicRemoteViewsFactory(this.getApplicationContext(), intent);
+        return new FeatureRemoteViewsFactory(this.getApplicationContext(), intent);
     }
 
 }
 
-class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
-    private static final String TAG = "PicRemoteViewsFactory";
+class FeatureRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+    private static final String TAG = "FeatureRemoteViewsFactory";
     /* mWidgetItems will cache the data that will be used to fill the items in the list
     	it is a collection of WidgetItem classes
     	refer to widget_item.xml and the WidgetItem class
     */
-    private static List<PictureEntry> mWidgetItems = new CopyOnWriteArrayList<PictureEntry>();
-    private Context mContext;
+    private static List<PictureEntry> mFeatureWidgetItems = new CopyOnWriteArrayList<PictureEntry>();
+    private Context myContext;
 
-    public PicRemoteViewsFactory(Context context, Intent intent) {
-        mContext = context.getApplicationContext();        
+    public FeatureRemoteViewsFactory(Context context, Intent intent) {
+        myContext = context.getApplicationContext();        
     }
 
     public void onCreate() {
@@ -40,60 +41,55 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
         // for example downloading or creating content etc, should be deferred to onDataSetChanged()
         // or getViewAt(). Taking more than 20 seconds in this call will result in an ANR.
     	
-    	mWidgetItems = WikiFeedParser.parsePhotos(WikiFeedParser.POTD_STREAM);
-    	//Log.d(TAG, "list size is " + mWidgetItems.size());
+    	mFeatureWidgetItems = WikiFeedParser.parsePhotos(WikiFeedParser.FEATURED_FEED);
+    	Log.d(TAG, "list size is " + mFeatureWidgetItems.size());
     	//Log.d(TAG, "Wiki Svc Factory onCreate");
     	}
     
     public static void updateWidgetItems( ) {
     	//static method called by onUpdate from the widget provider
-    	mWidgetItems = WikiFeedParser.parsePhotos(WikiFeedParser.POTD_STREAM);
-
-    }
-    
-    public static void updateWidgetItems(String feed) {
-    	//static method called by onUpdate from the widget provider
-    	mWidgetItems = WikiFeedParser.parsePhotos(feed);
+    	mFeatureWidgetItems = WikiFeedParser.parsePhotos(WikiFeedParser.FEATURED_FEED);
 
     }
         
     public void onDestroy() {
         // In onDestroy() you should tear down anything that was setup for your data source,
         // eg. cursors, connections, etc.
-        mWidgetItems.clear();
+        mFeatureWidgetItems.clear();
     }
 
     public int getCount() {
-        return mWidgetItems.size();
+        return mFeatureWidgetItems.size();
     }    
 
-    private static int[] widgetID = {
-    	R.layout.pic_widget_item, R.layout.pic_widget_item2
+    private static int[] layout_ID = {
+    	R.layout.feature_widget_item, R.layout.feature_widget_item2
     };
     
     public RemoteViews getViewAt(int position) {
         // position goes from 0 to getCount() - 1.
-
+    	
         /* Create a remote views object from the pic widget item xml file
          	alternate the background colors of the widget
     		set the text of the title and summary based on the position in the list */
-        final RemoteViews rv = new RemoteViews(mContext.getPackageName(), widgetID[position%2]);
-        rv.setTextViewText(R.id.widget_item, mWidgetItems.get(position).title);
-        rv.setTextViewText(R.id.widget_summary, mWidgetItems.get(position).summary);
+        final RemoteViews rv = new RemoteViews(myContext.getPackageName(), layout_ID[position%2]);
+        rv.setTextViewText(R.id.widget_item, mFeatureWidgetItems.get(position).title);
+        rv.setTextViewText(R.id.widget_summary, mFeatureWidgetItems.get(position).summary);
         //now pull the bitmap down from the web and resize it for display
         //Temporary code TODO
         /*************/
         
-        if(mWidgetItems.get(position).photo != null) {
-        	rv.setImageViewBitmap(R.id.widget_pic, mWidgetItems.get(position).photo);
+        if(mFeatureWidgetItems.get(position).photo != null) {
+        	rv.setImageViewBitmap(R.id.widget_pic, mFeatureWidgetItems.get(position).photo);
         } else {
         	rv.setImageViewResource(R.id.widget_pic, R.drawable.icon);
+        	Log.d(TAG, "null photo");
         }
         /*************/
         // Next, we set a fill-intent which will be used to fill-in the pending intent template
         // which is set on the collection view in StackWidgetProvider.
         Bundle extras = new Bundle();
-        extras.putString(WikiWidgetProvider.URL_TAG, mWidgetItems.get(position).wikipediaUrl);
+        extras.putString(WikiWidgetProvider.URL_TAG, mFeatureWidgetItems.get(position).wikipediaUrl);
         
         //Log.d(TAG, "set url as extra " + mWidgetItems.get(position).wikipediaUrl);
         Intent fillInIntent = new Intent(); //new Intent();
@@ -118,7 +114,6 @@ class PicRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     }
 
     public int getViewTypeCount() {
-    	//every item in the list looks the same, return 1
         return 1;
     }
 

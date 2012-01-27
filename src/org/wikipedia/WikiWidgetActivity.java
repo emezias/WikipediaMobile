@@ -31,19 +31,11 @@ public class WikiWidgetActivity extends Activity {
 	    String location = getIntent().getStringExtra(WikiWidgetProvider.URL_TAG);
 	    if(location != null) {
 	    	Log.d(TAG, "first try " + location);
-	    }
-	    //Log.d(TAG, "onResume of widget activity"); 
-        //TODO remove the extra junk with a nice clean parse of Wikipedia data and atom feeds
-	    if(b != null) {
-	    	location = b.getString(WikiWidgetProvider.URL_TAG);
-            if(location == null) {
-            	location = "file:///android_asset/www/index.html";
-            } else {
-            	}
-    	    Log.d(TAG, "location? " + location);            	
 	    } else {
-	    	location = "file:///android_asset/www/index.html"; //file:///android_asset/www/index.html
+	    	//location = "http://www.wikipedia.org/";
+	    	location = "http://m.wikipedia.org/";
 	    }
+	    
 	    Log.d(TAG, "loading now" + location);
     	mWebView.loadUrl(location);
 	    mWebView.invalidate();

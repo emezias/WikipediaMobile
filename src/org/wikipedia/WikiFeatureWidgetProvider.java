@@ -10,16 +10,14 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-public class WikiPicWidgetProvider extends AppWidgetProvider {
-    private static final String TAG = "WikiPicWidgetProvider";
+public class WikiFeatureWidgetProvider extends AppWidgetProvider {
+    private static final String TAG = "WikiFeatureWidgetProvider";
 /*  
- * This class will display recent photo of the day pictures and titles from Wikipedia
- * It pulls the latest data from an RSS feed defined int he WikiPicWidgetServic
+ * This class will display feature of the day articles from Wikipedia
  * It also acts as a broadcast receiver on a touch of the list that will open the selected Wikipedia page
  */
     public static final String CLICK = "org.wikipedia.CLICK";
     public static final String URL_TAG = "org.wikipedia.EXTRA_URL";
-    public static final String SUMMARY = "org.wikipedia.SUMMARY";
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
@@ -36,13 +34,12 @@ public class WikiPicWidgetProvider extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
-        //TODO, put the gps data fetch here
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         //This code will execute when an item in the widget is touched
-    	//Log.d(TAG, "wiki provider receive " + action);
+    	//Log.d(TAG, "WikiFeatureWidgetProvider receive");
         if (((String)intent.getAction()).equals(CLICK)) {
         	//final Intent tnt = new Intent(context.getApplicationContext(), WikiWidgetActivity.class);
         	//final Intent tnt = new Intent(context.getApplicationContext(), WikipediaActivity.class);
@@ -50,15 +47,7 @@ public class WikiPicWidgetProvider extends AppWidgetProvider {
 
             String location = intent.getStringExtra(URL_TAG);
             Log.d(TAG, "location " + location);
-            //TODO remove the extra junk with a nice clean parse of Wikipedia data
-            /*if(location == null) {
-            	location = "";
-            } else {
-            	if(!location.contains("http")) {
-            		location = "http://" + location;
-            	}
-            	location = makeMobile(location);
-            }*/
+
             final Intent tnt = new Intent("android.intent.action.VIEW", Uri.parse(location));
             Toast.makeText(context, "Loading Wikipedia", Toast.LENGTH_SHORT).show();
             //Log.d(TAG, "read url tag, value is " + location);
@@ -71,15 +60,16 @@ public class WikiPicWidgetProvider extends AppWidgetProvider {
         super.onReceive(context, intent);
     }
     
+
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // update each of the widgets with the remote adapter
     	// the update interval is once per day
-    	PicRemoteViewsFactory.updateWidgetItems();
+    	FeatureRemoteViewsFactory.updateWidgetItems();
         for (int i = 0; i < appWidgetIds.length; ++i) {
-        	//Log.d(TAG, "wiki provider update");
+        	Log.d(TAG, "wiki provider update");
             // This intent points to the Service class that creates view objects for this widget
-            final Intent intent = new Intent(context, WikiPicWidgetService.class);
+            final Intent intent = new Intent(context, WikiFeatureWidgetSvc.class);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
             intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
             //not sure about this call to set data, just following sample code
@@ -90,7 +80,7 @@ public class WikiPicWidgetProvider extends AppWidgetProvider {
             rv.setEmptyView(R.id.stack_view, R.id.empty_view);
 
             
-            final Intent toastIntent = new Intent(context, WikiPicWidgetProvider.class);
+            final Intent toastIntent = new Intent(context, WikiFeatureWidgetProvider.class);
             // Set the action for each view of the stack widget to invoke
             // getActivity pending intents did not seem to be working on Honeycomb
             // toastIntent.setAction(Intent.ACTION_VIEW);
